@@ -1,6 +1,8 @@
 import csv
 from operator import itemgetter
 import openpyxl
+import numpy as np
+import matplotlib.pyplot as plt
 from openpyxl.styles import Font, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.styles.numbers import FORMAT_PERCENTAGE_00
@@ -240,8 +242,67 @@ class report:
         self.clean_column(cities_list, 'C')
         wb.save('report.xlsx')
 
+    def generate_vertical_graph(self, title, legend_titles, param1, param2, labels, ax):
+            x = np.arange(len(labels))
+            width = 0.35
+            plt.rcParams['font.size'] = '8'
+            ax.bar(x - width / 2, param1, width, label=legend_titles[0])
+            ax.bar(x + width / 2, param2, width, label=legend_titles[1])
+            ax.set_xticks(x, labels, rotation="vertical")
+            ax.grid(axis='y')
+            ax.set_title(title)
+            ax.legend()
+
+    def generate_horizontal_graph(self, ax):
+        plt.rcParams['font.size'] = '8'
+        ax.set_title("Уровень зарплат по городам")
+        cities = self.cities_list_items[0]
+        salaries = self.cities_list_items[1]
+        labels = [city.replace(' ', '\n').replace('-', '-\n') for city in cities]
+        y = np.arange(len(labels))
+        ax.barh(y, salaries)
+        ax.set_yticks(y, labels=labels, fontsize=6)
+        ax.grid(axis='x')
+        ax.invert_yaxis()
+
+    def generate_pie(self,ax):
+        plt.rcParams['font.size'] = '6'
+        ax.set_title("Доля вакансий по городам")
+        labels = self.cities_list_items[3]
+        labels.insert(0, "Другие")
+        vacancies_share_vals = self.cities_list_items[4]
+        vacancies_share_vals.insert(0, 1 - sum(vacancies_share_vals))
+        ax.pie(vacancies_share_vals, labels=labels)
+        ax.axis('equal')
+
+    def generate_image(self):
+        fig = plt.figure()
+        fig.set_size_inches(10, 7)
+        plt.rc('xtick', labelsize=8)
+        plt.rc('ytick', labelsize=8)
+        ax1 = fig.add_subplot(221)
+        ax2 = fig.add_subplot(222)
+        ax3 = fig.add_subplot(223)
+        ax4 = fig.add_subplot(224)
+        self.generate_vertical_graph("Уровень зарплат по годам",
+                                     ['средняя з/п', f'з/п {self.profession}'],
+                                     self.years_list_items[1],
+                                     self.years_list_items[2],
+                                     self.years_list_items[0],
+                                     ax1)
+        self.generate_vertical_graph("Количество вакансий по годам",
+                                     ['Количество вакансий',f"Количество вакансий {self.profession}"],
+                                     self.years_list_items[3],
+                                     self.years_list_items[4],
+                                     self.years_list_items[0],
+                                     ax2)
+        self.generate_horizontal_graph(ax3)
+        self.generate_pie(ax4)
+        plt.tight_layout()
+        plt.savefig('graph.png', dpi=200)
+
 file_name = input("Введите название файла: ")
 profession = input("Введите название профессии: ")
 dataset = DataSet(file_name, profession)
 dataset.print_result()
-report(dataset).generate_excel()
+report(dataset).generate_image()
