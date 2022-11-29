@@ -221,6 +221,7 @@ class report:
     def adjust_column_size(self, list, widths):
         for i in range(1, 6):
             list.column_dimensions[get_column_letter(i)].width = widths[i - 1]
+
     def generate_excel(self):
         wb = openpyxl.Workbook()
         years_list = wb.active
