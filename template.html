@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body{
+            text-align: center;
+            font-family: Verdana, sans-serif;
+        }
+        h1{
+            font-size: 30px;
+        }
+        h2{
+            font-size: 25px;
+        }
+        img{
+            width: 100%;
+            margin: auto;
+            height: auto;
+        }
+        table{
+            border-collapse: collapse;
+            width: 50%;
+        }
+        th,td{
+            font-size: 15px;
+            padding: 5px;
+            border: 1px solid black;
+            text-align: center;
+        }
+        table{
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .tables{
+            display: -webkit-box;
+            -webkit-box-pack: justify;
+        }
+        .tables table{
+            width: 49%;
+        }
+    </style>
+</head>
+<body>
+<h1>Аналитика по зарплатам и городам для профессии {{profession}}</h1>
+<img src="file:///D:/pythonUrfu/{{image_file}}">
+<h2>Статистика по годам</h2>
+<table>
+    <tr>
+        {% for cell in years_sheet_headings: %}
+        <th>
+            {{cell}}
+        </th>
+        {% endfor %}
+    </tr>
+    {% for row in range(2, years_sheet.max_row + 1): %}
+    <tr>
+        {% for cell in years_sheet[row]: %}
+        <td>
+            {{cell.value}}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+<h2>Статистика по городам</h2>
+<div class="tables">
+    <table>
+        <tr>
+            {% for cell in cities_sheet_headings[:2]: %}
+            <th>
+                {{cell}}
+            </th>
+            {% endfor %}
+        </tr>
+        {% for row in range(2, cities_sheet.max_row + 1): %}
+        <tr>
+            {% for col in [1,2]: %}            <td>
+                {{ cities_sheet.cell(row,col).value }}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    <table>
+        <tr>
+            {% for cell in cities_sheet_headings[3:]: %}
+            <th>
+                {{cell}}
+            </th>
+            {% endfor %}
+        </tr>
+        {% for row in range(2, cities_sheet.max_row + 1): %}
+        <tr>
+            {% for col in [4,5]: %}
+            <td>
+                {{cities_sheet.cell(row, col).value}}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>
