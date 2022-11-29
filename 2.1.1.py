@@ -170,22 +170,17 @@ class DataSet:
         print("Доля вакансий по городам (в порядке убывания): " + str(self.vacancies_share_in_cities))
 
 
-def set_widths_xl(column_items, column_widths):
-    for i in range(len(column_items)):
-        for item in column_items[i]:
-            column_widths[i] = max(len(str(item)) + 2, column_widths[i])
-
 class report:
     def __init__(self, dataset):
         self.years_list_headings = (
             "Год", "Средняя зарплата", f"Средняя зарплата - {dataset.profession}", "Количество вакансий",
             f"Количество вакансий - {dataset.profession}")
+        self.cities_list_headings = ("Город", "Уровень зарплат", "", "Город", "Доля вакансий")
         self.years_list_items = [[year for year in dataset.salary_at_times],
                                  [value for value in dataset.salary_at_times.values()],
                                  [value for value in dataset.salary_at_times_for_profession.values()],
                                  [value for value in dataset.vacancies_amount_at_times.values()],
                                  [value for value in dataset.vacancies_amount_at_times_for_profession.values()]]
-        self.cities_list_headings = ("Город", "Уровень зарплат", "", "Город", "Доля вакансий")
         self.cities_list_items = [[city for city in dataset.salary_in_cities],
                                   [value for value in dataset.salary_in_cities.values()],
                                   ["" for i in range(len(dataset.salary_in_cities))],
@@ -193,13 +188,16 @@ class report:
                                   [value for value in dataset.vacancies_share_in_cities.values()]]
         self.years_list_widths = [len(heading) + 2 for heading in self.years_list_headings]
         self.cities_list_widths = [len(heading) + 2 for heading in self.cities_list_headings]
-        set_widths_xl(self.years_list_items, self.years_list_widths)
-        set_widths_xl(self.cities_list_items, self.cities_list_widths)
+        self.set_widths_xl(self.years_list_items, self.years_list_widths)
+        self.set_widths_xl(self.cities_list_items, self.cities_list_widths)
 
-    def clean_column(self, list_items, column):
-        for cell in list_items[column]:
-            cell.border = Border(top=Side(border_style=None),
-                                 bottom=Side(border_style=None))
+    def set_widths_xl(self, column_items, column_widths):
+        for i in range(len(column_items)):
+            for item in column_items[i]:
+                column_widths[i] = max(len(str(item)) + 2, column_widths[i])
+    def clean_column(self, list_items, name):
+        for cell in list_items[name]:
+            cell.border = Border(top=Side(border_style=None),bottom=Side(border_style=None))
 
     def make_border(self, list_items, width, height):
         cell_range = f'A1:{get_column_letter(width)}{height}'
@@ -207,7 +205,21 @@ class report:
         for row in list_items[cell_range]:
             for cell in row:
                 cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+    def set_bold_cells(self,cells):
+        for cell in cells:
+            cell.font = Font(bold=True)
 
+    def fill_rows(self, list, items, column_height):
+        for i in range(column_height):
+            list.append([column[i] for column in items])
+
+    def set_format(self, list_column, name, format):
+        for cell in list_column[name]:
+            cell.number_format = format
+
+    def adjust_column_size(self, list, widths):
+        for i in range(1, 6):
+            list.column_dimensions[get_column_letter(i)].width = widths[i - 1]
     def generate_excel(self):
         wb = openpyxl.Workbook()
         years_list = wb.active
@@ -215,27 +227,21 @@ class report:
         cities_list = wb.create_sheet("Статистика по городам")
         years_list.append(self.years_list_headings)
         cities_list.append(self.cities_list_headings)
-        for cell in years_list['1']:
-            cell.font = Font(bold=True)
-        for i in range(len(self.years_list_items[0])):
-            years_list.append([column[i] for column in self.years_list_items])
-        for cell in cities_list['1']:
-            cell.font = Font(bold=True)
-        for i in range(len(self.cities_list_items[0])):
-            cities_list.append([column[i] for column in self.cities_list_items])
-        for cell in cities_list['E']:
-            cell.number_format = FORMAT_PERCENTAGE_00
-        for i in range(1, 6):
-            cities_list.column_dimensions[get_column_letter(i)].width = self.cities_list_widths[i - 1]
-            years_list.column_dimensions[get_column_letter(i)].width = self.years_list_widths[i - 1]
+        self.set_bold_cells(years_list['1'])
+        self.set_bold_cells(cities_list['1'])
+        self.fill_rows(years_list, self.years_list_items, len(self.years_list_items[0]))
+        self.fill_rows(cities_list, self.cities_list_items, len(self.cities_list_items[0]))
+        self.set_format(cities_list, 'E', FORMAT_PERCENTAGE_00)
+        self.adjust_column_size(cities_list, self.cities_list_widths)
+        self.adjust_column_size(years_list, self.years_list_widths)
         self.make_border(years_list, len(self.years_list_headings), len(self.years_list_items[0]) + 1)
         self.make_border(cities_list, len(self.cities_list_headings), len(self.cities_list_items[0]) + 1)
         self.clean_column(cities_list, 'C')
         wb.save('report.xlsx')
 
-
 file_name = input("Введите название файла: ")
 profession = input("Введите название профессии: ")
 dataset = DataSet(file_name, profession)
+print(dataset.salary_at_times)
 dataset.print_result()
 report(dataset).generate_excel()
