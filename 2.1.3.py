@@ -22,6 +22,15 @@ currency_to_rub = {"AZN": 35.68,
 
 
 def take_first_ten(dictionary):
+    """
+    Функция возвращающая первые десять элемнтов словаря
+
+    Parameters:
+               dictionary (dict): словарь
+
+    Returns:
+              (dict): новый словарь из 10 элементов
+    """
     new_dictionary = {}
     i = 0
     for key in dictionary:
@@ -32,7 +41,19 @@ def take_first_ten(dictionary):
 
 
 class Vacancy:
+    '''
+    Класс для предоставления вакансии
+
+    Attributes:
+        dictionary (dict): словарь
+    '''
     def __init__(self, dictionary):
+        '''
+        Инициализирует объект вакансии. Выполняет структурирование информации о вакансии
+
+        Attributes:
+                dictionary (dict): словарь с данными о вакансии
+        '''
         self.name = dictionary["name"]
         self.salary = (float(dictionary["salary_from"]) + float(dictionary["salary_to"])) / 2 * currency_to_rub[
             dictionary["salary_currency"]]
@@ -41,7 +62,18 @@ class Vacancy:
 
 
 class DataSet:
+    """Считывание файла и формирование структуры данных о нем.
+
+        Attributes:
+            name (str): название csv файла.
+            profession (str): Название профессии.
+    """
     def __init__(self, name, profession):
+        """Инициализирует класс DataSet. Чтение фала,форматирование,вывод информации.
+                Args:
+                    name (str): название csv файла.
+                    profession (str): название профессии.
+        """
         self.file_name = name
         self.profession = profession
         headings, vacancies = self.csv_reader()
@@ -54,8 +86,13 @@ class DataSet:
         self.vacancies_amount_in_cities = self.get_vacancies_amount_in_cities()
         self.vacancies_share_in_cities = self.get_vacancies_share_in_cities()
         self.salary_in_cities = self.get_salary_in_cities()
-
     def csv_reader(self):
+        '''Чтение данных из csv файла
+
+        Returns:
+            headings (list): список из заголовков фалйла
+            vacancies (list): список из профессий
+        '''
         headings = []
         vacancies = []
         columns = 0
@@ -80,6 +117,14 @@ class DataSet:
         return headings, vacancies
 
     def csv_filer(self, reader, headings):
+        """Записывает в словари данные полученные после чтения csv файла
+
+        Args:
+            reader (list): список вакансий полученных после обработки csv файла
+            headings (list): список заголовков полученных после обработки csv файла
+        Returns:
+            dictionaries (list[dict]): список словарей с вакансиями
+        """
         dictionaries = []
         for vacancy in reader:
             dictionary = {}
@@ -89,6 +134,11 @@ class DataSet:
         return dictionaries
 
     def get_salary_at_times(self):
+        """Вычисляет среднее значение зарплаты относительно года
+
+           Returns:
+               (dict): отсоритованный относительно года словарь с зарплатами
+        """
         dictionary = {}
         for vacancy in self.vacancies_objects:
             if vacancy.published_at not in dictionary:
@@ -100,6 +150,11 @@ class DataSet:
         return dict(sorted(dictionary.items(), key=itemgetter(0)))
 
     def get_vacancies_amount_at_times(self):
+        """Вычисляет кол-во вакансий относительно года
+
+           Returns:
+               (dict): отсоритованный относительно года словарь с кол-вом вакансий
+        """
         dictionary = {}
         for vacancy in self.vacancies_objects:
             if vacancy.published_at in dictionary:
@@ -109,6 +164,11 @@ class DataSet:
         return dict(sorted(dictionary.items(), key=itemgetter(0)))
 
     def get_salary_at_times_for_profession(self):
+        """Вычисляет среднее значение зарплаты относительно года по выбранной профессии
+
+           Returns:
+             (dict): отсоритованный относительно года словарь с зарплатами по выбранной профессии
+        """
         dictionary = {}
         for vacancy in self.vacancies_objects:
             if self.profession not in vacancy.name:
@@ -123,6 +183,11 @@ class DataSet:
         return dictionary if len(dictionary) != 0 else {2022: 0}
 
     def get_vacancies_amount_at_times_for_profession(self):
+        """Вычисляет кол-во вакансий относительно года по выбранной профессии
+
+           Returns:
+              (dict): отсоритованный относительно года словарь с кол-вом вакансий по выбранной профессии
+        """
         dictionary = {}
         for vacancy in self.vacancies_objects:
             if self.profession not in vacancy.name:
@@ -135,6 +200,11 @@ class DataSet:
         return dictionary if len(dictionary) != 0 else {2022: 0}
 
     def get_vacancies_amount_in_cities(self):
+        """Вычисляет кол-во вакансий по городам
+
+           Returns:
+                   (dict): словарь с кол-вом вакансий по городам
+        """
         dictionary = {}
         for vacancy in self.vacancies_objects:
             if vacancy.area_name not in dictionary:
@@ -144,6 +214,11 @@ class DataSet:
         return dictionary
 
     def get_salary_in_cities(self):
+        """Вычисляет величину зарплат по городам
+
+           Returns:
+              (dict): словарь из первых 10 значений с величинами зарплат по городам
+        """
         dictionary = {}
         for vacancy in self.vacancies_objects:
             if self.vacancies_amount_in_cities[vacancy.area_name] / len(self.vacancies_objects) < 0.01:
@@ -157,6 +232,11 @@ class DataSet:
         return take_first_ten(dict(sorted(dictionary.items(), key=itemgetter(1), reverse=True)))
 
     def get_vacancies_share_in_cities(self):
+        """Вычисляет города в которых кол-во вакансий больше или равно 1% от общего числа вакансий
+
+            Returns:
+              (dict): словарь из первых 10 вакансий кол-во которых больше или равно 1% от общего числа вакансий
+        """
         dictionary = {}
         for key in self.vacancies_amount_in_cities:
             if self.vacancies_amount_in_cities[key] / len(self.vacancies_objects) >= 0.01:
@@ -164,6 +244,8 @@ class DataSet:
         return take_first_ten(dict(sorted(dictionary.items(), key=itemgetter(1), reverse=True)))
 
     def print_result(self):
+        """Выводит данные необходимы для графиков в консоль
+        """
         print("Динамика уровня зарплат по годам: " + str(self.salary_at_times))
         print("Динамика количества вакансий по годам: " + str(self.vacancies_amount_at_times))
         print("Динамика уровня зарплат по годам для выбранной профессии: " + str(
@@ -175,7 +257,16 @@ class DataSet:
 
 
 class report:
+    """Класс создающий  png-график, excel таблицу и pdf-файл с таблицей и графиком.
+
+       Attributes:
+           dataset (DataSet): объект с данными необходимыми для построения графиков и таблиц
+       """
     def __init__(self, dataset):
+        """Инициализирует класс report. Структурирование данных для графиков и таблиц.
+                Args:
+                    data (DataSet): Посчитанные данные для графиков.
+        """
         self.profession = dataset.profession
         self.years_list_headings = (
             "Год", "Средняя зарплата", f"Средняя зарплата - {self.profession}", "Количество вакансий",
@@ -197,14 +288,33 @@ class report:
         self.set_widths_xl(self.cities_list_items, self.cities_list_widths)
 
     def set_widths_xl(self, column_items, column_widths):
+        """Устанавливает ширину для каждой колонки по максимально широкому элементу
+
+           Args:
+               column_items(list): элементы колонок
+               column_widths(list): лист заголовков для колонок
+        """
         for i in range(len(column_items)):
             for item in column_items[i]:
                 column_widths[i] = max(len(str(item)) + 2, column_widths[i])
     def clean_column(self, list_items, name):
+        """Очищает стили колонки
+
+            Args:
+                name(str): название колонки для очищения из excel листа
+                list_items (list): excel лист
+        """
         for cell in list_items[name]:
             cell.border = Border(top=Side(border_style=None),bottom=Side(border_style=None))
 
     def make_border(self, list_items, width, height):
+        """Создает границы для ячеек таблицы
+
+            Args:
+                list_items (list): excel лист
+                width: ширина таблицы
+                height: высота таблицы
+        """
         cell_range = f'A1:{get_column_letter(width)}{height}'
         thin = Side(border_style="thin", color="000000")
         for row in list_items[cell_range]:
@@ -212,22 +322,52 @@ class report:
                 cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
 
     def set_bold_cells(self,cells):
+        """Устанавливает толщину шрифта ячеек как bold
+
+             Args:
+                  cells(list) : лист с ячейками
+        """
         for cell in cells:
             cell.font = Font(bold=True)
 
     def fill_rows(self, list, items, column_height):
+        """Заполняет ряды таблицы
+
+            Args:
+                list (list): excel лист
+                items (list[list]): элементы ячеек колонок
+                column_height (int): высота колонки
+        """
         for i in range(column_height):
             list.append([column[i] for column in items])
 
-    def set_format(self, list_column, name, format):
-        for cell in list_column[name]:
+    def set_format(self, list_sheet, name, format):
+        """Устанавливает формат ячеек колонки excel листа
+
+            Args:
+                list_sheet (list): excel лист
+                name (str): наименование колонки таблицы
+                format (str): устанавливаемый формат для ячеек
+        """
+        for cell in list_sheet[name]:
             cell.number_format = format
 
-    def adjust_column_size(self, list, widths):
+    def adjust_column_size(self, list_sheet, widths):
+        """Устанавливает ширины для excel листа по самым широким элементам
+        Args:
+           list_sheet (list): excel лист
+           widths (list[int]): ширины самых длинных элементов для каждой колонки
+        """
         for i in range(1, 6):
-            list.column_dimensions[get_column_letter(i)].width = widths[i - 1]
+            list_sheet.column_dimensions[get_column_letter(i)].width = widths[i - 1]
 
     def generate_excel(self):
+        """Генерирует excel файл с двумя страницами о вакансиях и таблицами в каждой:
+            по годам и по городам соотвественно
+
+           Returns:
+               (list): лист со станицами по годам и по городам
+        """
         wb = openpyxl.Workbook()
         years_list = wb.active
         years_list.title = "Статистика по годам"
@@ -248,6 +388,16 @@ class report:
         return [years_list, cities_list]
 
     def generate_vertical_graph(self, title, legend_titles, param1, param2, labels, ax):
+            """Генерирует вертикальный график
+
+                Args:
+                   title (str): название графика
+                   legend_titles (list[str]): лист с названиями для легенд
+                   param1 (list): первый парметр для отображения на графике
+                   param2 (list): второй парметр для отображения на графике
+                   labels (list): лист c элементами для оси OX
+                   ax: область в поле для рисования графика
+            """
             x = np.arange(len(labels))
             width = 0.35
             plt.rcParams['font.size'] = '8'
@@ -259,6 +409,11 @@ class report:
             ax.legend()
 
     def generate_horizontal_graph(self, ax):
+        """Генерирует горизонтальный график
+
+          Args:
+             ax: область в поле для рисования графика
+        """
         plt.rcParams['font.size'] = '8'
         ax.set_title("Уровень зарплат по городам")
         cities = self.cities_list_items[0]
@@ -271,6 +426,11 @@ class report:
         ax.invert_yaxis()
 
     def generate_pie(self,ax):
+        """Генерирует pie график
+
+           Args:
+              ax: область в поле для рисования графика
+        """
         plt.rcParams['font.size'] = '6'
         ax.set_title("Доля вакансий по городам")
         labels = self.cities_list_items[3]
@@ -281,6 +441,8 @@ class report:
         ax.axis('equal')
 
     def generate_image(self):
+        """Метод для создания картинки с графиками.
+        """
         fig = plt.figure()
         fig.set_size_inches(10, 7)
         plt.rc('xtick', labelsize=8)
@@ -307,10 +469,18 @@ class report:
         plt.savefig('graph.png', dpi=200)
 
     def format_td(self, list, name):
+        """Форматирует данные в виде процентного вида для ячейки таблицы
+
+            Args:
+                list (list): excel страница c таблицей
+                name (str): название столбца ячеки которого нужно привести в правильный формат
+        """
         for cell in list[name][1:]:
             cell.value = str(round(float(cell.value) * 100, 2)).replace('.', ',') + '%'
 
     def generate_pdf(self):
+        """Генерирует pdf файл
+        """
         self.generate_image()
         years_sheet, cities_sheet = self.generate_excel()
         self.format_td(cities_sheet, 'E')
